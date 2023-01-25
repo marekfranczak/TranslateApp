@@ -56,14 +56,13 @@ public class FirstFragment extends Fragment implements View.OnClickListener{
     private PreviewView previewView;
     private ImageCapture imageCapture;
     private Button translateButton;
-    private Button secButton;
     private Uri photoUri;
     private boolean connected = false;
     private String originalText;
     private Translate translate;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentFirstBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
@@ -72,24 +71,14 @@ public class FirstFragment extends Fragment implements View.OnClickListener{
         super.onViewCreated(view, savedInstanceState);
 
         translateButton = view.findViewById(R.id.translateButton);
-        secButton = view.findViewById(R.id.button);
         previewView = view.findViewById(R.id.previewView);
         translateButton.setOnClickListener(this);
-
-        secButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                passToNextLayout();
-            }
-        });
         cameraProviderFuture =  ProcessCameraProvider.getInstance(this.getContext());
         cameraProviderFuture.addListener(() -> {
             try{
                 ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
                 startCameraX(cameraProvider);
-            } catch (ExecutionException e){
-                e.printStackTrace();
-            } catch (InterruptedException e){
+            } catch (ExecutionException | InterruptedException e){
                 e.printStackTrace();
             }
         }, getExecutor());
@@ -98,7 +87,6 @@ public class FirstFragment extends Fragment implements View.OnClickListener{
     @SuppressLint("RestrictedApi")
     public void onClick(View view){
         capturePhoto();
-
     }
 
     @Override
@@ -122,8 +110,6 @@ public class FirstFragment extends Fragment implements View.OnClickListener{
                 .build();
 
         cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageCapture);
-        System.out.println("cameraProvider - stop!");
-        //passToNextLayout();
     }
 
     private void capturePhoto(){
@@ -131,7 +117,6 @@ public class FirstFragment extends Fragment implements View.OnClickListener{
         ContentValues contentValues = new ContentValues();
         contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, timeStamp);
         contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg");
-        System.out.println("capturePhoto()");
         imageCapture.takePicture(
                 new ImageCapture.OutputFileOptions.Builder(
                         FirstFragment.this.getContext().getContentResolver(),
@@ -142,10 +127,9 @@ public class FirstFragment extends Fragment implements View.OnClickListener{
                 new ImageCapture.OnImageSavedCallback() {
                     @Override
                     public void onImageSaved(@NonNull ImageCapture.OutputFileResults outputFileResults) {
-                        System.out.println("Take photo");
                         photoUri = outputFileResults.getSavedUri();
                         Data.setUri(outputFileResults.getSavedUri());
-                        makeToast("Saving.. ");
+                        makeToast("processing.. ");
                         runTextRecognition();
                     }
                     @Override
@@ -157,7 +141,6 @@ public class FirstFragment extends Fragment implements View.OnClickListener{
     }
 
     private void passToNextLayout(){
-        System.out.println("passToNextLayout!");
         NavHostFragment.findNavController(FirstFragment.this).navigate(R.id.action_FirstFragment_to_SecondFragment);
     }
 
@@ -172,7 +155,6 @@ public class FirstFragment extends Fragment implements View.OnClickListener{
 
     private void runTextRecognition(){
         Bitmap bitmap = null;
-        System.out.println("originalText");
         ContentResolver contentResolver = getContext().getContentResolver();
         try {
             if(Build.VERSION.SDK_INT < 28) {
@@ -182,54 +164,38 @@ public class FirstFragment extends Fragment implements View.OnClickListener{
                 bitmap = ImageDecoder.decodeBitmap(source);
             }
         } catch (Exception e) {
-            System.out.println("runTextRecognition..");
             originalText = "run text recognition";
             e.printStackTrace();
         }
-        System.out.println("Recognized..");
+
+        assert bitmap != null;
         InputImage image = InputImage.fromBitmap(bitmap, 0);
         TextRecognizer recognizer = TextRecognition.getClient();
-        System.out.println("Recognized..");
         recognizer.process(image)
                 .addOnSuccessListener(
-                        new OnSuccessListener<Text>() {
-                            @Override
-                            public void onSuccess(Text text) {
-                                makeToast("Recognizing.. ");
-                                System.out.println("Recognized..");
-                                Data.setOriginalText(text.getText());
-                                processTextRecognitionResult(text);
-                            }
+                        text -> {
+                            Data.setOriginalText(text.getText());
+                            processTextRecognitionResult(text);
                         })
                 .addOnFailureListener(
-                        new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                System.out.println("Recognized error..");
-                                makeToast("Error: "+e.getMessage());
-                            }
-                        });
+                        e -> makeToast("Error: "+e.getMessage()));
     }
 
     private void processTextRecognitionResult(Text text){
         List<Text.TextBlock> blocks = text.getTextBlocks();
         if (blocks.size() == 0) {
             makeToast("Text not found.. ");
-            System.out.println("Text not found.. ");
             originalText = "Text not found..";
             return;
         }
         originalText = text.getText();
         if(checkInternetConnection()){
             // if there is internet connection, get translate service and start translation
-            System.out.println("In translate");
             getTranslateService();
-            System.out.println("In translate");
             if(originalText == null)
-                System.out.println("original text == null");
+                originalText = "Text not found..";
             else
                 translate();
-            System.out.println("After translate");
         } else {
             // if not, display "no connection" warning
             Data.setTranslateText("Lost connection..");
@@ -237,9 +203,17 @@ public class FirstFragment extends Fragment implements View.OnClickListener{
     }
 
     private void translate() {
+        String lanCode = "pl";
+        try {
+            if (Data.getLanguages().getLanguageCode() != null)
+                lanCode = Data.getLanguages().getLanguageCode();
+        } catch (NullPointerException e){
+            e.printStackTrace();
+        }
         Translation translation = translate.translate(originalText,
-                Translate.TranslateOption.targetLanguage("pl"), Translate.TranslateOption.model("base"));
+                Translate.TranslateOption.targetLanguage(lanCode), Translate.TranslateOption.model("base"));
         Data.setTranslateText(translation.getTranslatedText());
+        passToNextLayout();
     }
 
     private void getTranslateService() {

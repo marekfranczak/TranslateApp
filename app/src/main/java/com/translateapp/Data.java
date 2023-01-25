@@ -10,6 +10,7 @@ public class Data {
     private static String originalText = "";
     private static String translateText = "";
     private static Uri uri = null;
+    private static Languages languages;
 
 
     public static String getOriginalText() {
@@ -34,5 +35,13 @@ public class Data {
 
     public static void setUri(Uri uri) {
         Data.uri = uri;
+    }
+
+    public static Languages getLanguages() {
+        return languages;
+    }
+
+    public static void setLanguages(Languages languages) {
+        Data.languages = languages;
     }
 }

@@ -17,6 +17,7 @@ import com.translateapp.databinding.ActivityMainBinding;
 
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -42,6 +43,9 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+        for(Languages languages : Languages.values())
+
+            menu.add(languages.toString());
         return true;
     }
 
@@ -50,7 +54,18 @@ public class MainActivity extends AppCompatActivity {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
+        if(item == null) {
+            System.out.println(item.getTitle());
+            Data.setLanguages(Languages.valueOf("Poland"));
+            System.out.println("Data: "+Data.getLanguages().getLanguageName());
+        }
+
         int id = item.getItemId();
+        try {
+            Data.setLanguages(Languages.valueOf(item.getTitle().toString()));
+        } catch (NullPointerException e){
+            e.printStackTrace();
+        }
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
@@ -65,5 +80,9 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
         return NavigationUI.navigateUp(navController, appBarConfiguration)
                 || super.onSupportNavigateUp();
+    }
+
+    private void makeToast(String text){
+        Toast.makeText(MainActivity.this, text, Toast.LENGTH_SHORT).show();
     }
 }
