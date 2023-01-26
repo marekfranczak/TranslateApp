@@ -27,9 +27,20 @@ The application works on the phone with the android system (8.0+). Application t
 ## Screenshots and action video
 ![Gif with working app](Pictures/book2.gif)
 ![Gif with working app](Pictures/book1.gif)
-![Gif with working app](Pictures/display1.png)
-![Gif with working app](Pictures/display2.png)
-![Gif with working app](Pictures/languageChange.png)
+
+**Gif with working app**
+
+![First screen](Pictures/display1.png)
+
+**First screen**
+
+![Secong screen](Pictures/display2.png)
+
+**Secong screen**
+
+![Language selection](Pictures/languageChange.png)
+
+**Language selection**
 
 ## License
 For open source projects, say how it is licensed.
