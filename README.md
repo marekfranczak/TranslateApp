@@ -25,10 +25,11 @@
 The application works on the phone with the android system (8.0+). Application that allows you to take a picture, scan it for text, and instantly translate it using the power of MLKit and Google Cloud Translation. Simply snap a photo, and app will use MLKit to recognize and extract any text in the image. That text will then be sent to the Google Cloud Translation API for instant translation into your desired language. The final result is displayed on the screen, including the original image, the original text, and the translated text. This app makes it easy to understand foreign languages, whether you're traveling abroad or trying to read a menu at a restaurant.
 
 ## Screenshots and action video
-![Selecting a paired device](Pictures/288274989_604339677775446_1596262134055746843_n.png)
-![Servo control](Pictures/289160318_735282557518511_7426355838059124682_n.png)
-
-## Text recognition and translation test results
+![Gif with working app](Pictures/book2.gif)
+![Gif with working app](Pictures/book1.gif)
+![Gif with working app](Pictures/display1.png)
+![Gif with working app](Pictures/display2.png)
+![Gif with working app](Pictures/languageChange.png)
 
 ## License
 For open source projects, say how it is licensed.
