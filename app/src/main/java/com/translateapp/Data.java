@@ -2,9 +2,6 @@ package com.translateapp;
 
 import android.net.Uri;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class Data {
 
     private static String originalText = "";

@@ -57,7 +57,6 @@ public class MainActivity extends AppCompatActivity {
         if(item == null) {
             System.out.println(item.getTitle());
             Data.setLanguages(Languages.valueOf("Poland"));
-            System.out.println("Data: "+Data.getLanguages().getLanguageName());
         }
 
         int id = item.getItemId();
@@ -80,9 +79,5 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
         return NavigationUI.navigateUp(navController, appBarConfiguration)
                 || super.onSupportNavigateUp();
-    }
-
-    private void makeToast(String text){
-        Toast.makeText(MainActivity.this, text, Toast.LENGTH_SHORT).show();
     }
 }
