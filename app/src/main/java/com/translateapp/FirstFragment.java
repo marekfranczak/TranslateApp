@@ -49,6 +49,12 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 
+/**
+ * The class is responsible for handling the first view in the application.
+ * After taking a photo, it recognizes the text and translates it into the selected language.
+ * @author Marek Frańczak
+ * @since 1.0.0
+ */
 public class FirstFragment extends Fragment implements View.OnClickListener{
 
     private FragmentFirstBinding binding;
@@ -61,12 +67,30 @@ public class FirstFragment extends Fragment implements View.OnClickListener{
     private String originalText;
     private Translate translate;
 
+    /**
+     * This method is an overridden method from the Fragment class.
+     * It is called when the fragment's view is being created. The method returns the root view of the fragment's layout.
+     * The method first inflates the layout for the fragment by calling the inflate method on the FragmentFirstBinding object and passing the inflater, container, and false as parameters.
+     * The false parameter indicates that the inflated layout should not be added to the container view.
+     *
+     * @param inflater A LayoutInflater object that is used to inflate the fragment's layout.
+     * @param container A ViewGroup object that is the parent view of the fragment.
+     * @param savedInstanceState A Bundle object that can be used to save the state of the fragment.
+     * @return The method returns the root view of the layout by calling the getRoot method on the binding object.
+     * @see Fragment
+     */
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentFirstBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
 
+    /**
+     * The onViewCreated method is a part of the Fragment lifecycle and it's called when the View associated with the fragment has been created and added to the UI.
+     * This method is typically used to initialize the views and perform other setup tasks for the fragment's user interface.
+     * @param view The root view of the fragment.
+     * @param savedInstanceState parameter is a Bundle object that is used to pass data between various Android activities.
+     */
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
@@ -84,17 +108,35 @@ public class FirstFragment extends Fragment implements View.OnClickListener{
         }, getExecutor());
     }
 
+    /**
+     * Method from view.onClickListener interface.
+     * It is responsible for the operation of calling the method that handles capturing the photo.
+     * @param view The root view of the fragment.
+     */
     @SuppressLint("RestrictedApi")
     public void onClick(View view){
         capturePhoto();
     }
 
+    /**
+     * The onDestroyView method is a lifecycle method in the Android framework that is called when the view associated with a fragment is being destroyed.
+     * In this case, it is being overridden to set the value of the binding variable to null.
+     * This may be done to release resources and prevent memory leaks associated with the view.
+     */
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
     }
 
+    /**
+     * This method starts the cameraX functionality. It first unbinds all existing bindings for the camera provider.
+     * Then it creates a CameraSelector that specifies the rear camera should be used. A Preview instance is created and its surface provider is set to the surface provider of the "previewView".
+     * An ImageCapture instance is also created with capture mode set to minimize latency.
+     * Finally, the camera provider is bound to the lifecycle of this fragment, with the camera selector, preview, and image capture objects provided as arguments.
+     * @param cameraProvider The parameter ProcessCameraProvider cameraProvider is an instance of the ProcessCameraProvider class and it represents the camera provider that can be used to get an instance of the camera and bind it to the lifecycle of the given object.
+     *                       In this case, the camera is bound to the lifecycle of the Fragment object through the method bindToLifecycle(this, cameraSelector, preview, imageCapture).
+     */
     @SuppressLint("RestrictedApi")
     private void startCameraX(ProcessCameraProvider cameraProvider){
         cameraProvider.unbindAll();
@@ -112,6 +154,12 @@ public class FirstFragment extends Fragment implements View.OnClickListener{
         cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageCapture);
     }
 
+    /**
+     * The method capturePhoto captures an image and stores it in the external storage. It uses the ImageCapture component of CameraX to take the picture. The timestamp of the image is used as its display name.
+     * The MIME type of the image is set to "image/jpeg". The image is saved using the ImageCapture.takePicture method, which takes an OutputFileOptions object to specify the destination and content values of the saved image.
+     * The saved image's URI is stored in the photoUri variable and the Data class.
+     * Finally, the method makes a toast to indicate the processing of the image and runs the text recognition process.
+     */
     private void capturePhoto(){
         long timeStamp = System.currentTimeMillis();
         ContentValues contentValues = new ContentValues();
@@ -140,19 +188,42 @@ public class FirstFragment extends Fragment implements View.OnClickListener{
         );
     }
 
+    /**
+     * This function navigates the user to the next fragment, SecondFragment, using the NavHostFragment and a specified action, R.id.action_FirstFragment_to_SecondFragment.
+     */
     private void passToNextLayout(){
         NavHostFragment.findNavController(FirstFragment.this).navigate(R.id.action_FirstFragment_to_SecondFragment);
     }
 
+    /**
+     * This function returns the main executor for the current context.
+     * @return The main executor for the current context.
+     */
     private Executor getExecutor(){
         return ContextCompat.getMainExecutor(this.getContext());
     }
 
+    /**
+     * This function displays a toast message with the specified text for a short duration.
+     * The context for the toast is obtained from the fragment's context.
+     * @param text Text that will be displayed.
+     */
     private void makeToast(String text){
         Toast.makeText(FirstFragment.this.getContext(), text, Toast.LENGTH_SHORT).show();
     }
 
-
+    /**
+     * The function runTextRecognition performs text recognition on an image. It first retrieves the image from the photoUri stored in the object.
+     * The method MediaStore.Images.Media.getBitmap is used for API levels less than 28, and ImageDecoder.decodeBitmap is used for API level 28 or higher.
+     *
+     * Next, the image is converted to a Bitmap object and used to create an InputImage object.
+     * A TextRecognizer object is created using the method TextRecognition.getClient.
+     *
+     * Finally, the method process is called on the TextRecognizer object, passing in the InputImage.
+     * The success or failure of the text recognition process is determined using the addOnSuccessListener and addOnFailureListener methods.
+     * If successful, the recognized text is passed to the processTextRecognitionResult method.
+     * If an error occurs, a toast message with the error message is displayed.
+     */
     private void runTextRecognition(){
         Bitmap bitmap = null;
         ContentResolver contentResolver = getContext().getContentResolver();
@@ -181,6 +252,16 @@ public class FirstFragment extends Fragment implements View.OnClickListener{
                         e -> makeToast("Error: "+e.getMessage()));
     }
 
+    /**
+     * The processTextRecognitionResult method processes the result of the text recognition task performed on an image using the Text Recognition API.
+     * It takes the Text object as an argument, which contains the result of the text recognition.
+     * The method first checks the number of text blocks in the result, and if it is zero, it shows a toast message indicating that no text was found and returns.
+     * If there are text blocks, it sets the originalText variable to the recognized text.
+     *
+     * Then, the method checks if there is an internet connection. If there is an internet connection, the method gets the translate service and starts the translation process by calling the translate method.
+     * If there is no internet connection, it sets the translateText in the Data object to "Lost connection..".
+     * @param text  The Text object, which contains the result of the text recognition.
+     */
     private void processTextRecognitionResult(Text text){
         List<Text.TextBlock> blocks = text.getTextBlocks();
         if (blocks.size() == 0) {
@@ -202,6 +283,23 @@ public class FirstFragment extends Fragment implements View.OnClickListener{
         }
     }
 
+    /**
+     * translate() method is used to translate text from one language to another language.
+     *
+     * This method starts by initializing a string variable called `lanCode` and assigning the value "pl".
+     * Then it checks if the language code stored in Data.getLanguages().getLanguageCode() is not null,
+     * if it's not null then it updates the `lanCode` variable with the value stored in Data.getLanguages().getLanguageCode().
+     *
+     * The method then uses the translate object to translate the original text stored in the `originalText` variable.
+     * The translate method takes the original text, target language code and the translate model as input parameters.
+     *
+     * The translate method returns the translated text in the form of Translation object.
+     * The method then sets the translated text in the Data object by calling Data.setTranslateText().
+     *
+     * Finally, the method calls the passToNextLayout() method to navigate to the next layout.
+     *
+     * @throws NullPointerException if the language code stored in Data.getLanguages().getLanguageCode() is null.
+     */
     private void translate() {
         String lanCode = "pl";
         try {
@@ -216,6 +314,15 @@ public class FirstFragment extends Fragment implements View.OnClickListener{
         passToNextLayout();
     }
 
+    /**
+     * This method initializes and sets up the Google Cloud Translate API client by using the API key stored in the credentials.json file.
+     * First, it sets the StrictMode policy to permit all actions to run on the main thread.
+     * Then, it tries to open the credentials.json file from the resources folder using the openRawResource method.
+     * It retrieves the Google Cloud credentials from the input stream using the fromStream method.
+     * Next, it creates an instance of the TranslateOptions by passing the credentials to the newBuilder method.
+     * Finally, it gets the translate service by calling the getService method on the TranslateOptions instance.
+     * @throws if the credentials.json file is null.
+     */
     private void getTranslateService() {
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
@@ -229,11 +336,16 @@ public class FirstFragment extends Fragment implements View.OnClickListener{
             TranslateOptions translateOptions = TranslateOptions.newBuilder().setCredentials(myCredentials).build();
             translate = translateOptions.getService();
 
-        }catch (IOException ioException){
-            ioException.printStackTrace();
+        }catch (IOException e){
+            e.printStackTrace();
         }
     }
 
+    /**
+     * Check if there is an active internet connection
+     *
+     * @return  a boolean value indicating whether there is an active internet connection (true) or not (false)
+     */
     private boolean checkInternetConnection() {
 
         //Check internet connection
